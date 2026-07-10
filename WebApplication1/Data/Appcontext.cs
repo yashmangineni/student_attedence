@@ -8,8 +8,6 @@ namespace WebApplication1.Data
         public Appcontext(DbContextOptions options ) : base(options) { }
 
         public DbSet<login> logins { get; set; }
-
-
-
+        public DbSet<Student> Students { get; set; }
     }
 }

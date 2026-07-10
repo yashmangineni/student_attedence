@@ -132,24 +132,22 @@ function TeacherDashboard() {
         </div>
 
         <ul className="sidebar-menu">
-       <button
-  className="sidebar-item-btn"
-  onClick={() => navigate("/dashboard")}
->
-  <IconDashboard />
-  Dashboard
-</button>
+          <button
+            className="sidebar-item-btn"
+            onClick={() => setActiveMenu('dashboard')}
+          >
+            <IconDashboard />
+            Dashboard
+          </button>
           
-     <button
-  className="sidebar-item-btn"
-  onClick={() => navigate("/studentadd")}
->
-  <IconDashboard />
-  Student Add
-</button>
-       <li><button className="sidebar-item-btn"><IconClass />Attendance</button></li>
-          
-          
+          <button
+            className="sidebar-item-btn"
+            onClick={() => setActiveMenu('studentAdd')}
+          >
+            <IconClass />
+            Student Add
+          </button>
+          <li><button className="sidebar-item-btn"><IconClass />Attendance</button></li>
         </ul>
 
         <div className="sidebar-user">
@@ -164,16 +162,20 @@ function TeacherDashboard() {
       <main className="dashboard-main">
         <header className="dashboard-header">
           <div className="dashboard-title-area">
-            <h1>Class Overview</h1>
-            <p>Welcome back, {user.name}. Here is what's happening with your students today.</p>
+            <h1>{activeMenu === 'studentAdd' ? 'Add Student' : 'Class Overview'}</h1>
+            <p>
+              {activeMenu === 'studentAdd'
+                ? 'Fill in student details on the right side panel.'
+                : `Welcome back, ${user.name}. Here is what's happening with your students today.`}
+            </p>
           </div>
         </header>
 
-        
-
-        
-
-          
+        {activeMenu === 'studentAdd' ? (
+          <StudentAdd />
+        ) : (
+          <></>
+        )}
       </main>
 
       
