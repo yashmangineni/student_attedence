@@ -5,6 +5,7 @@ namespace WebApplication1.Model
 {
     public class login
     {
+
         public int Id { get; set; } 
 
         [Required]

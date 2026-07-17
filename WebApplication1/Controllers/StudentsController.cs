@@ -47,5 +47,89 @@ namespace WebApplication1.Controllers
 
             return CreatedAtAction(nameof(GetStudents), new { id = student.Id }, student);
         }
+        // GET: single student details[view]
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Student>> GetStudent(int id)
+        {
+            var student = await _context.Students.FindAsync(id);
+            return student == null ? NotFound(new { message = "Student not found." }) : student;
+        }
+
+        //update student details[edit]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateStudent(int id, Student student)
+        {
+            
+            if (id != student.Id)
+            {
+                return BadRequest(new
+                {
+                    message = "Student Id mismatch."
+                });
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var existingStudent = await _context.Students.FindAsync(id);
+
+            if (existingStudent == null)
+            {
+                return NotFound(new
+                {
+                    message = "Student not found."
+                });
+            }
+
+            // Check if another student already has the same Roll Number
+            bool rollExists = await _context.Students.AnyAsync(s =>
+                s.RollNumber == student.RollNumber &&
+                s.Id != id);
+
+            if (rollExists)
+            {
+                return Conflict(new
+                {
+                    message = "Another student already has this roll number."
+                });
+            }
+
+            existingStudent.StudentName = student.StudentName;
+            existingStudent.Email = student.Email;
+            existingStudent.RollNumber = student.RollNumber;
+            existingStudent.Department = student.Department;
+            existingStudent.PhoneNumber = student.PhoneNumber;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Student updated successfully."
+            });
+        }
+
+        //delete student[delete]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteStudent(int id)
+        {
+            var student = await _context.Students.FindAsync(id);
+            if (student == null)
+            {
+                return NotFound(new
+                {
+                    message = "Student not found."
+                });
+            }
+
+            _context.Students.Remove(student);
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Student deleted successfully."
+            });
+        }
     }
 }
