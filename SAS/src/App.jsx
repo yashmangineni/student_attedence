@@ -3,7 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import TeacherLogin from './components/TeacherLogin';
 import TeacherDashboard from './components/TeacherDashboard';
 import AdminPanel from './components/AdminPanel';
-import StudentAdd from './components/StudentAdd';
+import Student from './components/Student';
 
 function App() {
   return (
@@ -19,7 +19,7 @@ function App() {
         <Route path="/signup" element={<TeacherLogin view="signup" />} />
         <Route path="/dashboard" element={<TeacherDashboard />} />
         <Route path="/admin" element={<AdminPanel />} />
-        <Route path="/studentadd" element={<StudentAdd />} />
+        <Route path="/studentadd" element={<Student />} />
       </Routes>
     </BrowserRouter>
   );

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import StudentAdd from './StudentAdd';
+import Student from './Student';
 
 const IconPlus = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
@@ -51,13 +51,8 @@ function TeacherDashboard() {
       return null;
     }
   });
-  const [students, setStudents] = useState([
-    { id: 1, name: 'Alice Vance', subject: 'Algebra', grade: 92, status: 'excellent' },
-    { id: 2, name: 'Bob Miller', subject: 'Physics', grade: 78, status: 'good' },
-    { id: 3, name: 'Charlie Davis', subject: 'Chemistry', grade: 85, status: 'good' },
-    { id: 4, name: 'Diana Prince', subject: 'Algebra', grade: 95, status: 'excellent' },
-    { id: 5, name: 'Evan Wright', subject: 'History', grade: 64, status: 'average' }
-  ]);
+  
+  const [students, setStudents] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newStudentName, setNewStudentName] = useState('');
   const [newStudentSubject, setNewStudentSubject] = useState('Algebra');
@@ -142,10 +137,10 @@ function TeacherDashboard() {
           
           <button
             className="sidebar-item-btn"
-            onClick={() => setActiveMenu('studentAdd')}
+            onClick={() => setActiveMenu('studentadd')}
           >
             <IconClass />
-            Student Add
+            Student 
           </button>
           <li><button className="sidebar-item-btn"><IconClass />Attendance</button></li>
         </ul>
@@ -162,17 +157,17 @@ function TeacherDashboard() {
       <main className="dashboard-main">
         <header className="dashboard-header">
           <div className="dashboard-title-area">
-            <h1>{activeMenu === 'studentAdd' ? 'Add Student' : 'Class Overview'}</h1>
+            <h1>{activeMenu === 'studentadd' ? 'Student Management' : 'Class Overview'}</h1>
             <p>
-              {activeMenu === 'studentAdd'
-                ? 'Fill in student details on the right side panel.'
+              {activeMenu === 'studentadd'
+                ? 'Manage your students here.'
                 : `Welcome back, ${user.name}. Here is what's happening with your students today.`}
             </p>
           </div>
         </header>
 
-        {activeMenu === 'studentAdd' ? (
-          <StudentAdd />
+        {activeMenu === 'studentadd' ? (
+          <Student add />
         ) : (
           <></>
         )}

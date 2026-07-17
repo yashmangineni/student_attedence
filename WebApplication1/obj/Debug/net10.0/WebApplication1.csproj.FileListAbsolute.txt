@@ -333,3 +333,7 @@ C:\Yaswanth\Website\student_attedence\webapplication1\obj\Debug\net10.0\refint\W
 C:\Yaswanth\Website\student_attedence\webapplication1\obj\Debug\net10.0\WebApplication1.pdb
 C:\Yaswanth\Website\student_attedence\webapplication1\obj\Debug\net10.0\WebApplication1.genruntimeconfig.cache
 C:\Yaswanth\Website\student_attedence\webapplication1\obj\Debug\net10.0\ref\WebApplication1.dll
+C:\Users\MadhuDappili\SAS_project\WebApplication1\obj\Debug\net10.0\WebApplication1.sourcelink.json
+C:\Users\MadhuDappili\SAS_project\Webapplication1\bin\Debug\net10.0\Swashbuckle.AspNetCore.Swagger.dll
+C:\Users\MadhuDappili\SAS_project\Webapplication1\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\Users\MadhuDappili\SAS_project\Webapplication1\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerUI.dll
