@@ -5,7 +5,7 @@
 namespace WebApplication1.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMainDb : Migration
+    public partial class AddStudentLogin : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -23,6 +23,23 @@ namespace WebApplication1.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_logins", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "StudentLogins",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    StudentId = table.Column<int>(type: "int", nullable: false),
+                    StudentName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsFirstLogin = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StudentLogins", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -48,6 +65,9 @@ namespace WebApplication1.Migrations
         {
             migrationBuilder.DropTable(
                 name: "logins");
+
+            migrationBuilder.DropTable(
+                name: "StudentLogins");
 
             migrationBuilder.DropTable(
                 name: "Students");

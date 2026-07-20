@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Model;
+using WebApplication1.Helpers;
 
 namespace WebApplication1.Controllers
 {
@@ -22,37 +23,119 @@ namespace WebApplication1.Controllers
             return await _context.Students.ToListAsync();
         }
 
+        // [HttpPost]
+        // public async Task<ActionResult<Student>> PostStudent(Student student)
+        // {
+        //     if (!ModelState.IsValid)
+        //     {
+        //         return BadRequest(ModelState);
+        //     }
+
+        //     var sameRoll = await _context.Students.AnyAsync(s => s.RollNumber == student.RollNumber);
+        //     if (sameRoll)
+        //     {
+        //         return Conflict(new { message = "A student with this roll number already exists." });
+        //     }
+
+        //     var sameName = await _context.Students.AnyAsync(s => s.StudentName == student.StudentName && s.RollNumber == student.RollNumber);
+        //     if (sameName)
+        //     {
+        //         return Conflict(new { message = "A student with the same name and roll number already exists." });
+        //     }
+
+        //     _context.Students.Add(student);
+        //     await _context.SaveChangesAsync();
+
+        //     return CreatedAtAction(nameof(GetStudents), new { id = student.Id }, student);
+        // }
+
         [HttpPost]
-        public async Task<ActionResult<Student>> PostStudent(Student student)
+public async Task<IActionResult> PostStudent(Student student)
+{
+    if (!ModelState.IsValid)
+    {
+        return BadRequest(ModelState);
+    }
+
+    var sameRoll = await _context.Students
+        .AnyAsync(s => s.RollNumber == student.RollNumber);
+
+    if (sameRoll)
+    {
+        return Conflict(new
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            message = "A student with this roll number already exists."
+        });
+    }
 
-            var sameRoll = await _context.Students.AnyAsync(s => s.RollNumber == student.RollNumber);
-            if (sameRoll)
-            {
-                return Conflict(new { message = "A student with this roll number already exists." });
-            }
+    _context.Students.Add(student);
+    await _context.SaveChangesAsync();
 
-            var sameName = await _context.Students.AnyAsync(s => s.StudentName == student.StudentName && s.RollNumber == student.RollNumber);
-            if (sameName)
-            {
-                return Conflict(new { message = "A student with the same name and roll number already exists." });
-            }
+    // Generate Username
+    string baseName = student.StudentName
+        .Replace(" ", "")
+        .ToLower();
 
-            _context.Students.Add(student);
-            await _context.SaveChangesAsync();
+    int count = await _context.StudentLogins
+        .CountAsync(x => x.Username.StartsWith(baseName));
 
-            return CreatedAtAction(nameof(GetStudents), new { id = student.Id }, student);
-        }
+    string username = $"{baseName}{count + 1:D2}";
+
+    // Temporary Password
+    string tempPassword = "Welcome@123";
+
+    StudentLogin login = new StudentLogin
+    {
+        StudentId = student.Id,
+        StudentName = student.StudentName,
+        Username = username,
+        Password = PasswordHelper.HashPassword(tempPassword),
+        IsFirstLogin = true
+    };
+
+    _context.StudentLogins.Add(login);
+
+    await _context.SaveChangesAsync();
+
+    return Ok(new
+    {
+        message = "Student Registered Successfully!",
+        username = username,
+        password = tempPassword
+    });
+}
         // GET: single student details[view]
         [HttpGet("{id}")]
         public async Task<ActionResult<Student>> GetStudent(int id)
         {
             var student = await _context.Students.FindAsync(id);
             return student == null ? NotFound(new { message = "Student not found." }) : student;
+        }
+
+        // GET: student details by username
+        [HttpGet("by-username/{username}")]
+        public async Task<IActionResult> GetStudentByUsername(string username)
+        {
+            var login = await _context.StudentLogins
+                .FirstOrDefaultAsync(x => x.Username == username);
+
+            if (login == null)
+            {
+                return NotFound(new { message = "Student not found." });
+            }
+
+            var student = await _context.Students.FindAsync(login.StudentId);
+            if (student == null)
+            {
+                return NotFound(new { message = "Student not found." });
+            }
+
+            return Ok(new
+            {
+                student,
+                username = login.Username,
+                firstLogin = login.IsFirstLogin
+            });
         }
 
         //update student details[edit]
