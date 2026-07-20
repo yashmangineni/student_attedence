@@ -18,6 +18,8 @@ function Student({ onSave }) {
   const [editId, setEditId] = useState(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [credentials, setCredentials] = useState(null);
+const [showCredentials, setShowCredentials] = useState(false);
 const showSuccessMessage = (msg) => {
   setMessage(msg);
 
@@ -64,7 +66,16 @@ const loadStudents = async () => {
 setActiveTab("add");
       setIsEditing(false);
     } else {
-      await saveStudent(formData);
+      const result = await saveStudent(formData);
+
+showSuccessMessage(result.message);
+
+setCredentials({
+    username: result.username,
+    password: result.password
+});
+
+setShowCredentials(true);
      showSuccessMessage("Student details saved successfully.");
     }
 
@@ -338,6 +349,60 @@ onClick={() => setActiveTab("view")}
 
     </div>
   </div>
+)}
+{showCredentials && credentials && (
+    <div className="modal-overlay">
+        <div className="modal-content">
+
+            <div className="modal-header">
+                <h2>Student Login Credentials</h2>
+
+                <button
+                    className="close-icon"
+                    onClick={() => setShowCredentials(false)}
+                >
+                    ×
+                </button>
+            </div>
+
+            <div className="details-grid">
+
+                <div>
+                    <label>Username</label>
+                    <p>{credentials.username}</p>
+                </div>
+
+                <div>
+                    <label>Temporary Password</label>
+                    <p>{credentials.password}</p>
+                </div>
+
+            </div>
+
+            <div className="modal-footer">
+
+                <button
+                    className="save-btn"
+                    onClick={() =>
+                        navigator.clipboard.writeText(
+                            `Username: ${credentials.username}\nPassword: ${credentials.password}`
+                        )
+                    }
+                >
+                    Copy
+                </button>
+
+                <button
+                    className="close-btn"
+                    onClick={() => setShowCredentials(false)}
+                >
+                    Close
+                </button>
+
+            </div>
+
+        </div>
+    </div>
 )}
       {message && (
     <p className="success-message">

@@ -58,37 +58,122 @@ namespace WebApplication1.Controllers
             return Ok(new { message = "Registration successful!" });
         }
 
-        [HttpPost("signin")]
-        public async Task<IActionResult> SignIn([FromBody] LoginRequest request)
+    //     [HttpPost("signin")]
+    //     public async Task<IActionResult> SignIn([FromBody] LoginRequest request)
+    //     {
+    //         if (request == null || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
+    //         {
+    //             return BadRequest(new { message = "Email and password are required." });
+    //         }
+
+    //         var user = await AppCon.logins.FirstOrDefaultAsync(u => u.email == request.Email);
+    //         if (user == null)
+    //         {
+    //             return Unauthorized(new { message = "Invalid email or password." });
+    //         }
+
+    //         // Verify password
+    //         bool isValid = PasswordHelper.VerifyPassword(request.Password, user.password);
+    //         if (!isValid)
+    //         {
+    //             return Unauthorized(new { message = "Invalid email or password." });
+    //         }
+
+    //         return Ok(new { 
+    //             message = "Login successful!", 
+    //             user = new { id = user.Id, name = user.name, email = user.email } 
+    //         });
+    //     }
+    // }
+    [HttpPost("signin")]
+public async Task<IActionResult> SignIn([FromBody] LoginRequest request)
+{
+    if (request == null ||
+        string.IsNullOrWhiteSpace(request.UserNameOrEmail) ||
+        string.IsNullOrWhiteSpace(request.Password))
+    {
+        return BadRequest(new
         {
-            if (request == null || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
-            {
-                return BadRequest(new { message = "Email and password are required." });
-            }
+            message = "Username/Email and Password are required."
+        });
+    }
 
-            var user = await AppCon.logins.FirstOrDefaultAsync(u => u.email == request.Email);
-            if (user == null)
-            {
-                return Unauthorized(new { message = "Invalid email or password." });
-            }
+    // ===========================
+    // Teacher Login
+    // ===========================
+    var normalizedInput = request.UserNameOrEmail.ToLower();
+    var teacher = await AppCon.logins
+        .FirstOrDefaultAsync(x => x.email.ToLower() == normalizedInput || x.name.ToLower() == normalizedInput);
 
-            // Verify password
-            bool isValid = PasswordHelper.VerifyPassword(request.Password, user.password);
-            if (!isValid)
-            {
-                return Unauthorized(new { message = "Invalid email or password." });
-            }
+    if (teacher != null)
+    {
+        bool isTeacherPasswordValid =
+            PasswordHelper.VerifyPassword(request.Password, teacher.password);
 
-            return Ok(new { 
-                message = "Login successful!", 
-                user = new { id = user.Id, name = user.name, email = user.email } 
+        if (!isTeacherPasswordValid)
+        {
+            return Unauthorized(new
+            {
+                message = "Invalid password."
             });
         }
+
+        return Ok(new
+        {
+            role = "Teacher",
+            message = "Teacher Login Successful",
+            user = new
+            {
+                id = teacher.Id,
+                name = teacher.name,
+                email = teacher.email
+            }
+        });
+    }
+
+    // ===========================
+    // Student Login
+    // ===========================
+    var student = await AppCon.StudentLogins
+        .FirstOrDefaultAsync(x => x.Username == request.UserNameOrEmail);
+
+    if (student != null)
+    {
+        bool isStudentPasswordValid =
+            PasswordHelper.VerifyPassword(request.Password, student.Password);
+
+        if (!isStudentPasswordValid)
+        {
+            return Unauthorized(new
+            {
+                message = "Invalid password."
+            });
+        }
+
+        return Ok(new
+        {
+            role = "Student",
+            message = "Student Login Successful",
+            user = new
+            {
+                studentId = student.StudentId,
+                studentName = student.StudentName,
+                username = student.Username
+            },
+            firstLogin = student.IsFirstLogin
+        });
+    }
+
+    return Unauthorized(new
+    {
+        message = "Invalid Username/Email or Password."
+    });
+}
     }
 
     public class LoginRequest
-    {
-        public string Email { get; set; }
-        public string Password { get; set; }
-    }
+{
+    public string UserNameOrEmail { get; set; }
+    public string Password { get; set; }
+}
 }

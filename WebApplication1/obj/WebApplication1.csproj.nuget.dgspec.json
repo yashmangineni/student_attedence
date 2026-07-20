@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\MadhuDappili\\SAS_project\\WebApplication1\\WebApplication1.csproj": {}
+    "C:\\Yaswanth\\Website\\student_attedence\\webapplication1\\WebApplication1.csproj": {}
   },
   "projects": {
-    "C:\\Users\\MadhuDappili\\SAS_project\\WebApplication1\\WebApplication1.csproj": {
+    "C:\\Yaswanth\\Website\\student_attedence\\webapplication1\\WebApplication1.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\MadhuDappili\\SAS_project\\WebApplication1\\WebApplication1.csproj",
+        "projectUniqueName": "C:\\Yaswanth\\Website\\student_attedence\\webapplication1\\WebApplication1.csproj",
         "projectName": "WebApplication1",
-        "projectPath": "C:\\Users\\MadhuDappili\\SAS_project\\WebApplication1\\WebApplication1.csproj",
-        "packagesPath": "C:\\Users\\MadhuDappili\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\MadhuDappili\\SAS_project\\WebApplication1\\obj\\",
+        "projectPath": "C:\\Yaswanth\\Website\\student_attedence\\webapplication1\\WebApplication1.csproj",
+        "packagesPath": "C:\\Users\\YaswanthMangineni\\.nuget\\packages\\",
+        "outputPath": "C:\\Yaswanth\\Website\\student_attedence\\webapplication1\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\MadhuDappili\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\YaswanthMangineni\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -26,6 +26,7 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {

@@ -2,7 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AuthAlerts from './AuthAlerts';
 
-const getApiUrl = (path) => `${import.meta.env.DEV ? '/Logincontroller' : 'http://localhost:5124/Logincontroller'}${path}`;
+const backendUrl = import.meta.env.VITE_API_BACKEND_URL || 'http://localhost:5124';
+const loginApiBase = `${backendUrl}/Logincontroller`;
+const studentLoginApiBase = `${backendUrl}/api/StudentLogin`;
+
+const getApiUrl = (path) => `${loginApiBase}${path}`;
+const getStudentLoginApiUrl = (path) => `${studentLoginApiBase}${path}`;
 
 const readJsonResponse = async (response) => {
   const text = await response.text();
@@ -35,12 +40,17 @@ function TeacherLogin({ view: initialView }) {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
-  const [loginEmail, setLoginEmail] = useState('');
+  const [loginUser, setLoginUser] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [signupName, setSignupName] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [signupCPassword, setSignupCPassword] = useState('');
+  const [forgotUsername, setForgotUsername] = useState('');
+  const [resetUsername, setResetUsername] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newConfirmPassword, setNewConfirmPassword] = useState('');
+  const [tempPassword, setTempPassword] = useState('');
 
   useEffect(() => {
     setView(initialView || 'login');
@@ -50,8 +60,12 @@ function TeacherLogin({ view: initialView }) {
     const savedUser = localStorage.getItem('teacher_session');
     if (savedUser) {
       try {
-        JSON.parse(savedUser);
-        navigate('/dashboard');
+        const user = JSON.parse(savedUser);
+        if (user?.role === 'Student') {
+          navigate('/student-dashboard');
+        } else {
+          navigate('/dashboard');
+        }
       } catch {
         localStorage.removeItem('teacher_session');
       }
@@ -74,8 +88,8 @@ function TeacherLogin({ view: initialView }) {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (!loginEmail || !loginPassword) {
-      setErrorMsg('Please enter both email and password.');
+    if (!loginUser|| !loginPassword) {
+      setErrorMsg('Please enter both username/email and password.');
       return;
     }
 
@@ -86,7 +100,10 @@ function TeacherLogin({ view: initialView }) {
       const response = await fetch(getApiUrl('/signin'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ Email: loginEmail, Password: loginPassword })
+       body: JSON.stringify({
+    UserNameOrEmail: loginUser,
+    Password: loginPassword
+})
       });
 
       const data = await readJsonResponse(response);
@@ -96,13 +113,100 @@ function TeacherLogin({ view: initialView }) {
       }
 
       const loggedUser = data.user;
-      localStorage.setItem('teacher_session', JSON.stringify(loggedUser));
+      const sessionData = {
+        ...loggedUser,
+        role: data.role,
+        firstLogin: data.firstLogin || false
+      };
+      localStorage.setItem('teacher_session', JSON.stringify(sessionData));
+      localStorage.setItem('role', data.role);
       setSuccessMsg('Logged in successfully!');
-      setLoginEmail('');
+      setLoginUser('');
       setLoginPassword('');
-      navigate('/dashboard');
+      if (data.role === 'Student') {
+        navigate('/student-dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       setErrorMsg(err.message || 'An error occurred during sign in.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    if (!forgotUsername) {
+      setErrorMsg('Please enter your student username.');
+      return;
+    }
+
+    setLoading(true);
+    setErrorMsg('');
+    setSuccessMsg('');
+
+    try {
+      const response = await fetch(getStudentLoginApiUrl('/forgot-password'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: forgotUsername })
+      });
+
+      const data = await readJsonResponse(response);
+
+      if (!response.ok) {
+        throw new Error(data?.message || 'Password reset failed.');
+      }
+
+      setTempPassword(data.temporaryPassword || '');
+      setResetUsername(forgotUsername);
+      setForgotUsername('');
+      setView('reset-password');
+    } catch (err) {
+      setErrorMsg(err.message || 'An error occurred while resetting password.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    if (!resetUsername || !newPassword || !newConfirmPassword) {
+      setErrorMsg('All fields are required.');
+      return;
+    }
+
+    if (newPassword !== newConfirmPassword) {
+      setErrorMsg('Passwords do not match.');
+      return;
+    }
+
+    setLoading(true);
+    setErrorMsg('');
+    setSuccessMsg('');
+
+    try {
+      const response = await fetch(getStudentLoginApiUrl('/change-password'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: resetUsername, newPassword })
+      });
+
+      const data = await readJsonResponse(response);
+
+      if (!response.ok) {
+        throw new Error(data?.message || 'Password change failed.');
+      }
+
+      setSuccessMsg('Password changed successfully. Please sign in with your new password.');
+      setResetUsername('');
+      setNewPassword('');
+      setNewConfirmPassword('');
+      setTempPassword('');
+      setView('login');
+    } catch (err) {
+      setErrorMsg(err.message || 'An error occurred while changing the password.');
     } finally {
       setLoading(false);
     }
@@ -151,6 +255,136 @@ function TeacherLogin({ view: initialView }) {
     }
   };
 
+  if (view === 'forgot-password') {
+    return (
+      <div className="glass-container">
+        <div className="glass-card">
+          <div className="auth-header">
+            <h2 className="auth-title">Forgot Password</h2>
+            <p className="auth-subtitle">Enter your student username to reset your password</p>
+          </div>
+
+          <AuthAlerts errorMsg={errorMsg} successMsg={successMsg} />
+
+          <form onSubmit={handleForgotPassword}>
+            <div className="form-group">
+              <label className="form-label">Student Username</label>
+              <div className="glass-input-wrapper">
+                <span className="glass-input-icon"><IconMail /></span>
+                <input
+                  type="text"
+                  className="glass-input"
+                  placeholder="Enter your student username"
+                  value={forgotUsername}
+                  onChange={(e) => setForgotUsername(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <button type="submit" className="btn-primary" disabled={loading}>
+              {loading ? 'Resetting...' : 'Send Temporary Password'}
+            </button>
+          </form>
+
+          <div className="auth-footer">
+            Remembered your password?
+            <button type="button" className="auth-link" onClick={() => { setErrorMsg(''); setSuccessMsg(''); setView('login'); }}>
+              Back to Sign In
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (view === 'reset-password') {
+    return (
+      <div className="glass-container">
+        <div className="glass-card">
+          <div className="auth-header">
+            <h2 className="auth-title">Create New Password</h2>
+            <p className="auth-subtitle">Use the temporary password to set a new password</p>
+          </div>
+
+          <AuthAlerts errorMsg={errorMsg} successMsg={successMsg} />
+
+          <form onSubmit={handleResetPassword}>
+            <div className="form-group">
+              <label className="form-label">Student Username</label>
+              <div className="glass-input-wrapper">
+                <span className="glass-input-icon"><IconMail /></span>
+                <input
+                  type="text"
+                  className="glass-input"
+                  placeholder="Enter your student username"
+                  value={resetUsername}
+                  onChange={(e) => setResetUsername(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Temporary Password</label>
+              <div className="glass-input-wrapper">
+                <span className="glass-input-icon"><IconLock /></span>
+                <input
+                  type="password"
+                  className="glass-input"
+                  placeholder="Temporary password"
+                  value={tempPassword}
+                  readOnly
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">New Password</label>
+              <div className="glass-input-wrapper">
+                <span className="glass-input-icon"><IconLock /></span>
+                <input
+                  type="password"
+                  className="glass-input"
+                  placeholder="Enter new password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Confirm Password</label>
+              <div className="glass-input-wrapper">
+                <span className="glass-input-icon"><IconLock /></span>
+                <input
+                  type="password"
+                  className="glass-input"
+                  placeholder="Confirm new password"
+                  value={newConfirmPassword}
+                  onChange={(e) => setNewConfirmPassword(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <button type="submit" className="btn-primary" disabled={loading}>
+              {loading ? 'Saving...' : 'Change Password'}
+            </button>
+          </form>
+
+          <div className="auth-footer">
+            Already have your password?
+            <button type="button" className="auth-link" onClick={() => { setErrorMsg(''); setSuccessMsg(''); setView('login'); }}>
+              Back to Sign In
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (view === 'login') {
     return (
       <div className="glass-container">
@@ -164,15 +398,15 @@ function TeacherLogin({ view: initialView }) {
 
           <form onSubmit={handleLogin}>
             <div className="form-group">
-              <label className="form-label">Email Address</label>
+              <label className="form-label">Username / Email</label>
               <div className="glass-input-wrapper">
                 <span className="glass-input-icon"><IconMail /></span>
                 <input
-                  type="email"
+                  type="text"
                   className="glass-input"
-                  placeholder="Enter valid teacher email"
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
+                  placeholder="Enter username or   email"
+                  value={loginUser}
+                  onChange={(e) => setLoginUser(e.target.value)}
                   required
                 />
               </div>
@@ -197,6 +431,12 @@ function TeacherLogin({ view: initialView }) {
               {loading ? 'Verifying...' : 'Sign In'}
             </button>
           </form>
+
+          <div className="auth-footer">
+            <button type="button" className="auth-link" onClick={() => { setErrorMsg(''); setSuccessMsg(''); setView('forgot-password'); }}>
+              Forgot password?
+            </button>
+          </div>
 
           <div className="auth-footer">
             Don't have an account?
@@ -236,13 +476,13 @@ function TeacherLogin({ view: initialView }) {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Email Address</label>
+            <label className="form-label">Email</label>
             <div className="glass-input-wrapper">
               <span className="glass-input-icon"><IconMail /></span>
               <input
                 type="email"
                 className="glass-input"
-                placeholder="Enter a teacher email"
+                placeholder="Enter your email address"
                 value={signupEmail}
                 onChange={(e) => setSignupEmail(e.target.value)}
                 required
